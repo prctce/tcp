@@ -1,27 +1,37 @@
-import socket
+import socket, threading
 
 TCP_IP = socket.gethostbyname(socket.gethostname())
-TCP_PORT = 5005
+TCP_PORT = 5006 
 ADDR = (TCP_IP, TCP_PORT)
 BUFFER_SIZE = 1024
 FORMAT = "utf-8"
+NICKNAME = input("Choose your nickname: ")
 
-def main():
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(ADDR)
-    print(f"[INFO] Client connected to server at {TCP_IP}:{TCP_PORT}")
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.connect(ADDR)
 
-    connected = True
-    while connected:
-        msg = input("> ")
+def receive():
+    while True:
+        try:
+            message = client.recv(BUFFER_SIZE).decode(
+                FORMAT)
+            if message == 'NICKNAME':
+                client.send(NICKNAME.encode(FORMAT))
+            else:
+                print(message)
+        except:
+            print("[INFO] An error occured!")
+            client.close()
+            break
 
-        client.send(msg.encode(FORMAT))
 
-        if msg == "!exit":
-            connected = False
-        else:
-            msg = client.recv(BUFFER_SIZE).decode(FORMAT)
-            print(f"[SERVER] {msg}")
+def write():
+    while True:
+        message = '{}: {}'.format(NICKNAME, input(''))
+        client.send(message.encode(FORMAT))
 
-if __name__ == "__main__":
-    main()
+
+receive_thread = threading.Thread(target=receive)
+receive_thread.start()
+write_thread = threading.Thread(target=write)
+write_thread.start()
