@@ -1,18 +1,27 @@
 import socket
-TCP_IP = '127.0.0.1'
+
+TCP_IP = socket.gethostbyname(socket.gethostname())
 TCP_PORT = 5005
+ADDR = (TCP_IP, TCP_PORT)
 BUFFER_SIZE = 1024
+FORMAT = "utf-8"
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((TCP_IP, TCP_PORT))
+def main():
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect(ADDR)
+    print(f"[INFO] Client connected to server at {TCP_IP}:{TCP_PORT}")
 
-while True:
-    msg = input("Enter message: ")
-    s.send(msg.encode())
+    connected = True
+    while connected:
+        msg = input("> ")
 
-    data = s.recv(BUFFER_SIZE)
-    sent = data.decode()
-    print("Data sent:", sent)
+        client.send(msg.encode(FORMAT))
 
-s.close()
-print(data)
+        if msg == "!exit":
+            connected = False
+        else:
+            msg = client.recv(BUFFER_SIZE).decode(FORMAT)
+            print(f"[SERVER] {msg}")
+
+if __name__ == "__main__":
+    main()
